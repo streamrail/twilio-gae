@@ -1,0 +1,13 @@
+application: gae-twilio-sms
+version: 1
+runtime: go
+api_version: go1
+
+handlers:
+- url: /js
+  static_dir: js
+  login: required
+
+- url: /.*
+  script: _go_app
+  login: required

@@ -1,10 +1,10 @@
 package twiliogae
 
 import (
-	"appengine"
-	"appengine/urlfetch"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/urlfetch"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -16,7 +16,7 @@ type Client interface {
 	AccountSid() string
 	AuthToken() string
 	RootUrl() string
-	post(appengine.Context, url.Values, string) ([]byte, error)
+	post(context.Context, url.Values, string) ([]byte, error)
 }
 
 type TwilioClient struct {
@@ -30,7 +30,7 @@ func NewClient(accountSid, authToken string) *TwilioClient {
 	return &TwilioClient{accountSid, authToken, rootUrl}
 }
 
-func (client *TwilioClient) post(c appengine.Context, values url.Values, uri string) ([]byte, error) {
+func (client *TwilioClient) post(c context.Context, values url.Values, uri string) ([]byte, error) {
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", "https://api.twilio.com", uri), strings.NewReader(values.Encode()))
 
 	if err != nil {
@@ -40,7 +40,10 @@ func (client *TwilioClient) post(c appengine.Context, values url.Values, uri str
 	req.SetBasicAuth(client.AccountSid(), client.AuthToken())
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	tr := &urlfetch.Transport{Context: c, Deadline: time.Duration(30) * time.Second}
+	tr := &urlfetch.Transport{
+		Context:  c,
+		Deadline: time.Duration(30) * time.Second,
+	}
 
 	res, err := tr.RoundTrip(req)
 	if err != nil {
